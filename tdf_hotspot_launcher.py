@@ -4,7 +4,7 @@ from tkinter import messagebox
 
 def start_hotspot():
     ssid = "TDF Entertainment Network"
-    password = "12345678"
+    password = "quizstorm"
     try:
         subprocess.run(["start", "ms-settings:network-mobilehotspot"], shell=True)
         messagebox.showinfo("Mobile Hotspot", f"✅ Your hotspot SSID is: {ssid}\n🔐 Password: {password}\n\nPlease toggle the hotspot ON in the window that just opened.")

@@ -1,0 +1,41 @@
+name: Build & Auto Sign Hotspot EXE
+
+on:
+  push:
+    paths:
+      - '**.py'
+
+jobs:
+  build-sign:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install PyInstaller
+      run: pip install pyinstaller
+
+    - name: Build EXE
+      run: pyinstaller --onefile --noconsole tdf_hotspot_launcher.py
+
+    - name: Generate Self-Signed Certificate
+      shell: powershell
+      run: |
+        $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=TDF Hotspot Launcher" -CertStoreLocation "cert:\\CurrentUser\\My"
+        Export-PfxCertificate -Cert $cert -FilePath tdf_cert.pfx -Password (ConvertTo-SecureString -String "password123" -Force -AsPlainText)
+
+    - name: Sign EXE
+      run: |
+        "C:\\Program Files (x86)\\Windows Kits\\10\\bin\\x64\\signtool.exe" sign /f tdf_cert.pfx /p password123 /fd sha256 /tr http://timestamp.digicert.com dist\\tdf_hotspot_launcher.exe
+
+    - name: Upload Signed EXE
+      uses: actions/upload-artifact@v4
+      with:
+        name: TDFHotspotLauncher-Signed
+        path: dist/tdf_hotspot_launcher.exe
